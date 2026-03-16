@@ -14,15 +14,17 @@ Build a Linux-runnable Java solution that can determine:
 
 ## Current Status
 
-This repository is now scaffolded as a Maven project with:
+This repository now includes:
 
-- immutable domain types
-- algorithm entry points
-- a minimal test baseline
-- a Java-specific implementation checklist
+- immutable domain types for rectangles and points
+- containment detection
+- intersection point detection for isolated boundary crossings
+- adjacency classification for `PROPER`, `SUB_LINE`, and `PARTIAL`
+- unit tests covering the main appendix-style and edge-case scenarios
+- a small CLI entry point for running the analysis manually
 
-The local machine used for scaffolding does not currently have a JDK or Maven
-installed, so compile/test execution has not been verified here yet.
+The local machine used for development still does not currently have a JDK or
+Maven installed, so compile/test execution has not been verified here yet.
 
 ## Technical Decisions
 
@@ -32,8 +34,11 @@ installed, so compile/test execution has not been verified here yet.
 - Coordinate type: `double`
 - Default containment rule: strict containment, meaning the inner rectangle must
   be wholly inside the outer rectangle and may not share a boundary
+- Identical rectangles do not count as containment
 - Shared-side cases will be classified as adjacency, not as boundary intersection
 - Corner-only contact should be treated as neither adjacency nor intersection
+- `intersectionPoints` returns isolated boundary-crossing points only; shared edge
+  segments are handled by adjacency instead
 
 If any of those assumptions change, update the tests first and then adjust the
 implementation.
@@ -53,31 +58,47 @@ src/test/java/com/ey/rectangles/
   RectangleTest.java
 ```
 
-## Task List
+## Implemented Rules
 
-1. Finish the geometry helper layer.
-   Add side/segment helpers so intersection and adjacency logic stay small and testable.
-2. Implement `intersectionPoints(Rectangle, Rectangle)`.
-   Return all distinct perimeter intersection points in deterministic order.
-3. Implement `adjacencyType(Rectangle, Rectangle)`.
-   Distinguish `PROPER`, `SUB_LINE`, `PARTIAL`, and `NONE`.
-4. Decide and document the identical-rectangle rule.
-   The current scaffold assumes identical rectangles are not containment.
-5. Expand the unit test suite.
-   Cover all appendix cases plus corner-touch, disjoint, containment with shared edge,
-   identical rectangles, and overlap without containment.
-6. Replace the placeholder CLI behavior in `App`.
-   Accept rectangle inputs and print the analysis results.
-7. Verify on a Linux environment.
-   Run `mvn test` and `mvn exec:java`, then document exact commands used.
-8. Publish the repository.
-   Add the public GitHub link requested in the exercise submission.
+### Containment
+
+`RectangleAnalyzer.contains(outer, inner)` uses strict containment:
+
+- every side of `inner` must be strictly inside `outer`
+- touching the outer boundary is not containment
+- identical rectangles are not containment
+
+### Intersection
+
+`RectangleAnalyzer.intersectionPoints(first, second)` returns the distinct points
+where the two rectangle boundaries cross as isolated points.
+
+- contained rectangles return no intersection points
+- shared-side adjacency returns no intersection points
+- corner-only contact returns no intersection points
+- common overlap cases produce two or four points
+
+### Adjacency
+
+`RectangleAnalyzer.adjacencyType(first, second)` returns:
+
+- `PROPER` when both touching sides fully match in length
+- `SUB_LINE` when one touching side is wholly contained within the other
+- `PARTIAL` when the touching overlap is shorter than both touching sides
+- `NONE` when rectangles overlap by area, are separated, or only meet at a corner
+
+## Remaining Tasks
+
+1. Verify on a machine with Java 17+ and Maven installed.
+   Run `mvn test` and `mvn exec:java`.
+2. Add the public GitHub link to the final submission package.
+3. Optionally add more examples or a richer CLI if you want to demo the solution live.
 
 ## Suggested Acceptance Criteria
 
 - `Rectangle` rejects invalid bounds
 - containment tests cover inside, outside, touching edge, and identical rectangles
-- intersection tests cover no overlap, partial overlap, and multi-point boundary crossings
+- intersection tests cover no overlap, containment, partial overlap, and four-point crossings
 - adjacency tests cover proper, sub-line, partial, and non-adjacent cases
 - all tests pass with `mvn test`
 - the demo runs on Linux with documented prerequisites
@@ -89,5 +110,5 @@ Once Java and Maven are installed:
 ```bash
 mvn test
 mvn exec:java
+mvn exec:java -Dexec.args="0 0 10 5 4 -2 8 3"
 ```
-
