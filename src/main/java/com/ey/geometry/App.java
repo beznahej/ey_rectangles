@@ -1,4 +1,4 @@
-package com.ey.rectangles;
+package com.ey.geometry;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

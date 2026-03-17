@@ -1,6 +1,16 @@
-package com.ey.rectangles;
+package com.ey.geometry;
 
-public record Rectangle(double minX, double minY, double maxX, double maxY) {
+record Point(double x, double y) {
+}
+
+enum AdjacencyType {
+    NONE,
+    PROPER,
+    SUB_LINE,
+    PARTIAL
+}
+
+record Rectangle(double minX, double minY, double maxX, double maxY) {
 
     public Rectangle {
         if (maxX <= minX) {
@@ -19,4 +29,3 @@ public record Rectangle(double minX, double minY, double maxX, double maxY) {
         return maxY - minY;
     }
 }
-

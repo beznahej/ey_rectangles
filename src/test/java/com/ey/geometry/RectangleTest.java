@@ -1,4 +1,4 @@
-package com.ey.rectangles;
+package com.ey.geometry;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -25,4 +25,3 @@ class RectangleTest {
         assertThrows(IllegalArgumentException.class, () -> new Rectangle(0.0, 5.0, 3.0, 5.0));
     }
 }
-
