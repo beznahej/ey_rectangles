@@ -1,5 +1,3 @@
-package com.ey.geometry;
-
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.Objects;

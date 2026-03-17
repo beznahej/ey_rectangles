@@ -1,5 +1,3 @@
-package com.ey.geometry;
-
 record Point(double x, double y) {
 }
 
