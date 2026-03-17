@@ -22,9 +22,7 @@ This repository now includes:
 - adjacency classification for `PROPER`, `SUB_LINE`, and `PARTIAL`
 - unit tests covering the main appendix-style and edge-case scenarios
 - a small CLI entry point for running the analysis manually
-
-The local machine used for development still does not currently have a JDK or
-Maven installed, so compile/test execution has not been verified here yet.
+- local verification with Java 17 and Maven
 
 ## Technical Decisions
 
@@ -32,6 +30,7 @@ Maven installed, so compile/test execution has not been verified here yet.
 - Build tool: Maven
 - Rectangle model: axis-aligned rectangles
 - Coordinate type: `double`
+- Assumptions: rectangles are axis-aligned, containment is strict, corner touch is not intersection, and shared-edge cases are treated as adjacency.
 - Default containment rule: strict containment, meaning the inner rectangle must
   be wholly inside the outer rectangle and may not share a boundary
 - Identical rectangles do not count as containment
@@ -89,10 +88,8 @@ where the two rectangle boundaries cross as isolated points.
 
 ## Remaining Tasks
 
-1. Verify on a machine with Java 17+ and Maven installed.
-   Run `mvn test` and `mvn exec:java`.
-2. Add the public GitHub link to the final submission package.
-3. Optionally add more examples or a richer CLI if you want to demo the solution live.
+1. Add the public GitHub link to the final submission package.
+2. Optionally add more examples or a richer CLI if you want to demo the solution live.
 
 ## Suggested Acceptance Criteria
 
@@ -103,12 +100,9 @@ where the two rectangle boundaries cross as isolated points.
 - all tests pass with `mvn test`
 - the demo runs on Linux with documented prerequisites
 
-## Commands
-
-Once Java and Maven are installed:
+## How To Run
 
 ```bash
 mvn test
-mvn exec:java
 mvn exec:java -Dexec.args="0 0 10 5 4 -2 8 3"
 ```
