@@ -3,6 +3,8 @@
 Java scaffold for the rectangle analysis exercise described in
 [Rectangles Exercise.docx](./Rectangles%20Exercise.docx).
 
+Public repository: `https://github.com/beznahej/ey_rectangles`
+
 ## Goal
 
 Build a Linux-runnable Java solution that can determine:
@@ -21,7 +23,7 @@ This repository now includes:
 - intersection point detection for isolated boundary crossings
 - adjacency classification for `PROPER`, `SUB_LINE`, and `PARTIAL`
 - unit tests covering the main appendix-style and edge-case scenarios
-- a small CLI entry point for running the analysis manually
+- a friendlier CLI with built-in demos, named demo selection, and custom input modes
 - local verification with Java 17 and Maven
 
 ## Technical Decisions
@@ -77,6 +79,10 @@ where the two rectangle boundaries cross as isolated points.
 - corner-only contact returns no intersection points
 - common overlap cases produce two or four points
 
+Shared-edge cases do not return discrete intersection points because a shared
+edge is a line segment, not a finite set of isolated crossing points. This
+implementation classifies those cases under adjacency instead.
+
 ### Adjacency
 
 `RectangleAnalyzer.adjacencyType(first, second)` returns:
@@ -86,10 +92,27 @@ where the two rectangle boundaries cross as isolated points.
 - `PARTIAL` when the touching overlap is shorter than both touching sides
 - `NONE` when rectangles overlap by area, are separated, or only meet at a corner
 
-## Remaining Tasks
+Overlap-by-area is not adjacency in this solution because adjacency means the
+rectangles share boundary points without overlapping interior area.
 
-1. Add the public GitHub link to the final submission package.
-2. Optionally add more examples or a richer CLI if you want to demo the solution live.
+## Demo Modes
+
+- No arguments: runs the full built-in demo suite.
+- `--demo <name>`: runs one named scenario such as `intersection` or `proper-adjacency`.
+- `--demo all`: runs all built-in scenarios.
+- `--rects ...`: analyzes two rectangles from explicit coordinates.
+- Bare eight numbers: still supported for backward compatibility.
+
+## Example Scenarios
+
+- `intersection`: partial overlap with two boundary crossing points
+- `four-point-intersection`: overlap where the boundaries cross at four points
+- `containment`: strict containment with zero intersection points
+- `proper-adjacency`: full side sharing
+- `sub-line-adjacency`: one touching side fully contained within the other
+- `partial-adjacency`: shorter shared boundary segment than both sides
+- `corner-touch`: contact at one corner only
+- `disjoint`: no contact and no overlap
 
 ## Suggested Acceptance Criteria
 
@@ -104,5 +127,9 @@ where the two rectangle boundaries cross as isolated points.
 
 ```bash
 mvn test
+mvn exec:java
+mvn exec:java -Dexec.args="--help"
+mvn exec:java -Dexec.args="--demo partial-adjacency"
+mvn exec:java -Dexec.args="--rects 0 0 10 5 4 -2 8 3"
 mvn exec:java -Dexec.args="0 0 10 5 4 -2 8 3"
 ```
