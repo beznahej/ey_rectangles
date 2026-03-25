@@ -13,6 +13,10 @@ public final class App {
     }
 
     public static void main(String[] args) {
+        if (args.length == 1 && "--rest".equals(args[0])) {
+            RectangleRestServer.start();
+            return;
+        }
         System.out.print(renderForArguments(args));
     }
 

@@ -49,6 +49,7 @@ final class RectangleAnalysisFormatter {
 
         appendLine(output, "Usage:");
         appendLine(output, "  mvn exec:java");
+        appendLine(output, "  mvn exec:java -Dexec.args=\"--rest\"");
         appendLine(output, "  mvn exec:java -Dexec.args=\"--help\"");
         appendLine(output, "  mvn exec:java -Dexec.args=\"--demo\"");
         appendLine(output, "  mvn exec:java -Dexec.args=\"--demo partial-adjacency\"");
