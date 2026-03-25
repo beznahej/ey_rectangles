@@ -21,7 +21,8 @@ final class RectangleAnalysisFormatter {
         int demoIndex = 1;
         int demoCount = demos.size();
         for (DemoCase demo : demos.values()) {
-            appendAnalysis(output, demoIndex + ". " + demo.title(), demo.description(), demo.first(), demo.second());
+            RectangleAnalysis analysis = RectangleAnalyzer.analyze(demo.first(), demo.second());
+            appendAnalysis(output, demoIndex + ". " + demo.title(), demo.description(), demo.first(), demo.second(), analysis);
             if (demoIndex < demoCount) {
                 appendBlankLine(output);
             }
@@ -64,14 +65,6 @@ final class RectangleAnalysisFormatter {
 
     static String renderUsageWithMessage(String message, Map<String, DemoCase> demos) {
         return message + NEW_LINE + NEW_LINE + renderUsage(demos);
-    }
-
-    private static void appendAnalysis(StringBuilder output,
-                                       String title,
-                                       String description,
-                                       Rectangle first,
-                                       Rectangle second) {
-        appendAnalysis(output, title, description, first, second, RectangleAnalyzer.analyze(first, second));
     }
 
     private static void appendAnalysis(StringBuilder output,

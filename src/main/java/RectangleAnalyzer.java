@@ -93,13 +93,14 @@ public final class RectangleAnalyzer {
         boolean secondContainsFirst = contains(second, first);
         AdjacencyType adjacency = adjacencyType(first, second);
         Set<Point> intersections = intersectionPoints(first, second);
+        boolean hasIntersections = !intersections.isEmpty();
         boolean areaOverlap = overlapsByArea(first, second);
         boolean cornerTouchOnly = touchesAtCornerOnly(first, second);
         RelationshipType relationship = classifyRelationship(
                 firstContainsSecond,
                 secondContainsFirst,
                 adjacency,
-                intersections,
+                hasIntersections,
                 areaOverlap,
                 cornerTouchOnly
         );
@@ -111,13 +112,6 @@ public final class RectangleAnalyzer {
                 intersections,
                 relationship
         );
-    }
-
-    /**
-     * Convenience wrapper for callers that only need the final relationship type.
-     */
-    public static RelationshipType relationshipType(Rectangle first, Rectangle second) {
-        return analyze(first, second).relationshipType();
     }
 
     private static void addVerticalHorizontalIntersection(Set<Point> points,
@@ -146,7 +140,7 @@ public final class RectangleAnalyzer {
     private static RelationshipType classifyRelationship(boolean firstContainsSecond,
                                                          boolean secondContainsFirst,
                                                          AdjacencyType adjacency,
-                                                         Set<Point> intersections,
+                                                         boolean hasIntersections,
                                                          boolean areaOverlap,
                                                          boolean cornerTouchOnly) {
         if (firstContainsSecond) {
@@ -158,7 +152,7 @@ public final class RectangleAnalyzer {
         if (adjacency != AdjacencyType.NONE) {
             return RelationshipType.ADJACENT;
         }
-        if (!intersections.isEmpty()) {
+        if (hasIntersections) {
             return RelationshipType.BOUNDARY_INTERSECTION;
         }
         if (areaOverlap) {
