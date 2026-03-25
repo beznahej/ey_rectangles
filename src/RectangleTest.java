@@ -1,3 +1,4 @@
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -14,12 +15,10 @@ class RectangleTest {
     }
 
     @Test
-    void rejectsInvalidHorizontalBounds() {
-        assertThrows(IllegalArgumentException.class, () -> new Rectangle(4.0, 0.0, 4.0, 3.0));
-    }
-
-    @Test
-    void rejectsInvalidVerticalBounds() {
-        assertThrows(IllegalArgumentException.class, () -> new Rectangle(0.0, 5.0, 3.0, 5.0));
+    void rejectsInvalidBounds() {
+        assertAll(
+                () -> assertThrows(IllegalArgumentException.class, () -> new Rectangle(4.0, 0.0, 4.0, 3.0)),
+                () -> assertThrows(IllegalArgumentException.class, () -> new Rectangle(0.0, 5.0, 3.0, 5.0))
+        );
     }
 }

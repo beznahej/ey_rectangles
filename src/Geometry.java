@@ -1,3 +1,5 @@
+import java.util.Set;
+
 record Point(double x, double y) {
 }
 
@@ -6,6 +8,23 @@ enum AdjacencyType {
     PROPER,
     SUB_LINE,
     PARTIAL
+}
+
+enum RelationshipType {
+    FIRST_CONTAINS_SECOND,
+    SECOND_CONTAINS_FIRST,
+    ADJACENT,
+    BOUNDARY_INTERSECTION,
+    AREA_OVERLAP,
+    CORNER_TOUCH,
+    DISJOINT
+}
+
+record RectangleAnalysis(boolean firstContainsSecond,
+                         boolean secondContainsFirst,
+                         AdjacencyType adjacencyType,
+                         Set<Point> intersectionPoints,
+                         RelationshipType relationshipType) {
 }
 
 record Rectangle(double minX, double minY, double maxX, double maxY) {

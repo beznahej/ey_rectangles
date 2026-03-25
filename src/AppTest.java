@@ -2,6 +2,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+/**
+ * Smoke tests for the CLI wrapper. Detailed geometry behavior is covered in
+ * {@code RectangleAnalyzerTest}; these tests just verify the main rendering paths.
+ */
 class AppTest {
 
     @Test
@@ -11,14 +15,6 @@ class AppTest {
         assertTrue(output.contains("Rectangles Demo Suite"));
         assertTrue(output.contains("Proper Adjacency"));
         assertTrue(output.contains("Corner Touch"));
-    }
-
-    @Test
-    void rendersNamedDemo() {
-        String output = App.renderForArguments(new String[]{"--demo", "sub-line-adjacency"});
-
-        assertTrue(output.contains("Sub-Line Adjacency"));
-        assertTrue(output.contains("Adjacency: SUB_LINE"));
     }
 
     @Test

@@ -3,6 +3,10 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * Stateless geometry helpers for classifying relationships between two
+ * axis-aligned rectangles.
+ */
 public final class RectangleAnalyzer {
 
     private static final double EPSILON = 1.0e-9;
@@ -10,6 +14,10 @@ public final class RectangleAnalyzer {
     private RectangleAnalyzer() {
     }
 
+    /**
+     * Returns {@code true} when {@code inner} lies strictly inside {@code outer}.
+     * Boundary contact does not count as containment.
+     */
     public static boolean contains(Rectangle outer, Rectangle inner) {
         Objects.requireNonNull(outer, "outer must not be null");
         Objects.requireNonNull(inner, "inner must not be null");
@@ -20,6 +28,10 @@ public final class RectangleAnalyzer {
                 && inner.maxY() < outer.maxY();
     }
 
+    /**
+     * Returns the discrete points where the rectangle boundaries cross.
+     * Shared edges and corner touches are intentionally excluded.
+     */
     public static Set<Point> intersectionPoints(Rectangle first, Rectangle second) {
         Objects.requireNonNull(first, "first must not be null");
         Objects.requireNonNull(second, "second must not be null");
@@ -41,12 +53,15 @@ public final class RectangleAnalyzer {
                 .collect(LinkedHashSet::new, Set::add, Set::addAll);
     }
 
+    /**
+     * Classifies side-sharing adjacency and returns {@link AdjacencyType#NONE}
+     * when the rectangles overlap by area, only touch at a corner, or are disjoint.
+     */
     public static AdjacencyType adjacencyType(Rectangle first, Rectangle second) {
         Objects.requireNonNull(first, "first must not be null");
         Objects.requireNonNull(second, "second must not be null");
 
-        if (hasPositiveOverlap(first.minX(), first.maxX(), second.minX(), second.maxX())
-                && hasPositiveOverlap(first.minY(), first.maxY(), second.minY(), second.maxY())) {
+        if (overlapsByArea(first, second)) {
             return AdjacencyType.NONE;
         }
 
@@ -65,6 +80,36 @@ public final class RectangleAnalyzer {
         }
 
         return AdjacencyType.NONE;
+    }
+
+    /**
+     * Computes the full rectangle analysis in one pass for downstream consumers.
+     */
+    public static RectangleAnalysis analyze(Rectangle first, Rectangle second) {
+        Objects.requireNonNull(first, "first must not be null");
+        Objects.requireNonNull(second, "second must not be null");
+
+        boolean firstContainsSecond = contains(first, second);
+        boolean secondContainsFirst = contains(second, first);
+        AdjacencyType adjacency = adjacencyType(first, second);
+        Set<Point> intersections = intersectionPoints(first, second);
+        RelationshipType relationship = classifyRelationship(first, second,
+                firstContainsSecond, secondContainsFirst, adjacency, intersections);
+
+        return new RectangleAnalysis(
+                firstContainsSecond,
+                secondContainsFirst,
+                adjacency,
+                intersections,
+                relationship
+        );
+    }
+
+    /**
+     * Convenience wrapper for callers that only need the final relationship type.
+     */
+    public static RelationshipType relationshipType(Rectangle first, Rectangle second) {
+        return analyze(first, second).relationshipType();
     }
 
     private static void addVerticalHorizontalIntersection(Set<Point> points,
@@ -90,8 +135,46 @@ public final class RectangleAnalyzer {
         return AdjacencyType.PARTIAL;
     }
 
-    private static boolean hasPositiveOverlap(double firstMin, double firstMax, double secondMin, double secondMax) {
-        return overlapLength(firstMin, firstMax, secondMin, secondMax) > 0.0;
+    private static RelationshipType classifyRelationship(Rectangle first,
+                                                         Rectangle second,
+                                                         boolean firstContainsSecond,
+                                                         boolean secondContainsFirst,
+                                                         AdjacencyType adjacency,
+                                                         Set<Point> intersections) {
+        if (firstContainsSecond) {
+            return RelationshipType.FIRST_CONTAINS_SECOND;
+        }
+        if (secondContainsFirst) {
+            return RelationshipType.SECOND_CONTAINS_FIRST;
+        }
+        if (adjacency != AdjacencyType.NONE) {
+            return RelationshipType.ADJACENT;
+        }
+        if (!intersections.isEmpty()) {
+            return RelationshipType.BOUNDARY_INTERSECTION;
+        }
+        if (overlapsByArea(first, second)) {
+            return RelationshipType.AREA_OVERLAP;
+        }
+        if (touchesAtCornerOnly(first, second)) {
+            return RelationshipType.CORNER_TOUCH;
+        }
+        return RelationshipType.DISJOINT;
+    }
+
+    private static boolean overlapsByArea(Rectangle first, Rectangle second) {
+        return overlapLength(first.minX(), first.maxX(), second.minX(), second.maxX()) > 0.0
+                && overlapLength(first.minY(), first.maxY(), second.minY(), second.maxY()) > 0.0;
+    }
+
+    private static boolean touchesAtCornerOnly(Rectangle first, Rectangle second) {
+        boolean xBoundaryTouch = touches(first.maxX(), second.minX()) || touches(second.maxX(), first.minX());
+        boolean yBoundaryTouch = touches(first.maxY(), second.minY()) || touches(second.maxY(), first.minY());
+
+        return xBoundaryTouch
+                && yBoundaryTouch
+                && overlapLength(first.minX(), first.maxX(), second.minX(), second.maxX()) == 0.0
+                && overlapLength(first.minY(), first.maxY(), second.minY(), second.maxY()) == 0.0;
     }
 
     private static double overlapLength(double firstMin, double firstMax, double secondMin, double secondMax) {
@@ -104,7 +187,7 @@ public final class RectangleAnalyzer {
     }
 
     private static boolean touches(double first, double second) {
-        return Math.abs(first - second) <= EPSILON;
+        return sameValue(first, second);
     }
 
     private static boolean sameValue(double first, double second) {
