@@ -93,8 +93,16 @@ public final class RectangleAnalyzer {
         boolean secondContainsFirst = contains(second, first);
         AdjacencyType adjacency = adjacencyType(first, second);
         Set<Point> intersections = intersectionPoints(first, second);
-        RelationshipType relationship = classifyRelationship(first, second,
-                firstContainsSecond, secondContainsFirst, adjacency, intersections);
+        boolean areaOverlap = overlapsByArea(first, second);
+        boolean cornerTouchOnly = touchesAtCornerOnly(first, second);
+        RelationshipType relationship = classifyRelationship(
+                firstContainsSecond,
+                secondContainsFirst,
+                adjacency,
+                intersections,
+                areaOverlap,
+                cornerTouchOnly
+        );
 
         return new RectangleAnalysis(
                 firstContainsSecond,
@@ -135,12 +143,12 @@ public final class RectangleAnalyzer {
         return AdjacencyType.PARTIAL;
     }
 
-    private static RelationshipType classifyRelationship(Rectangle first,
-                                                         Rectangle second,
-                                                         boolean firstContainsSecond,
+    private static RelationshipType classifyRelationship(boolean firstContainsSecond,
                                                          boolean secondContainsFirst,
                                                          AdjacencyType adjacency,
-                                                         Set<Point> intersections) {
+                                                         Set<Point> intersections,
+                                                         boolean areaOverlap,
+                                                         boolean cornerTouchOnly) {
         if (firstContainsSecond) {
             return RelationshipType.FIRST_CONTAINS_SECOND;
         }
@@ -153,10 +161,10 @@ public final class RectangleAnalyzer {
         if (!intersections.isEmpty()) {
             return RelationshipType.BOUNDARY_INTERSECTION;
         }
-        if (overlapsByArea(first, second)) {
+        if (areaOverlap) {
             return RelationshipType.AREA_OVERLAP;
         }
-        if (touchesAtCornerOnly(first, second)) {
+        if (cornerTouchOnly) {
             return RelationshipType.CORNER_TOUCH;
         }
         return RelationshipType.DISJOINT;
