@@ -1,5 +1,6 @@
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
@@ -10,8 +11,6 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,7 +19,9 @@ import java.util.Map;
 final class RectangleRestServer {
 
     private static final int DEFAULT_PORT = 8080;
+    private static final Map<String, DemoCase> DEMOS = DemoCatalog.all();
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final ObjectWriter JSON_WRITER = OBJECT_MAPPER.writerWithDefaultPrettyPrinter();
 
     private RectangleRestServer() {
     }
@@ -50,8 +51,7 @@ final class RectangleRestServer {
             return;
         }
 
-        Map<String, String> query = parseQuery(exchange.getRequestURI());
-        String demoName = query.getOrDefault("name", "intersection");
+        String demoName = readQueryValue(exchange.getRequestURI(), "name");
         try {
             String report = renderDemoReport(demoName);
             String html = renderHtmlPage(demoName, report);
@@ -71,15 +71,7 @@ final class RectangleRestServer {
             AnalyzeRequest request = OBJECT_MAPPER.readValue(body, AnalyzeRequest.class);
             Rectangle first = toRectangle("rectangleA", request.rectangleA());
             Rectangle second = toRectangle("rectangleB", request.rectangleB());
-            RectangleAnalysis analysis = RectangleAnalyzer.analyze(first, second);
-            AnalyzeResponse response = AnalyzeResponse.from(analysis);
-
-            sendResponse(
-                    exchange,
-                    200,
-                    "application/json; charset=utf-8",
-                    OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(response)
-            );
+            sendJson(exchange, 200, RectangleAnalyzer.analyze(first, second));
         } catch (IllegalArgumentException | JsonProcessingException exception) {
             sendJsonError(exchange, 400, exception.getMessage());
         }
@@ -96,12 +88,11 @@ final class RectangleRestServer {
     }
 
     private static String renderDemoReport(String demoName) {
-        Map<String, DemoCase> demos = DemoCatalog.all();
         if ("all".equalsIgnoreCase(demoName)) {
-            return RectangleAnalysisFormatter.renderDemoSuite(demos);
+            return RectangleAnalysisFormatter.renderDemoSuite(DEMOS);
         }
 
-        DemoCase demo = demos.get(demoName);
+        DemoCase demo = DEMOS.get(demoName);
         if (demo == null) {
             throw new IllegalArgumentException("unknown demo `" + demoName + "`");
         }
@@ -140,20 +131,21 @@ final class RectangleRestServer {
                 """.formatted(escapedName, escapedReport);
     }
 
-    private static Map<String, String> parseQuery(URI uri) {
-        Map<String, String> query = new LinkedHashMap<>();
+    private static String readQueryValue(URI uri, String key) {
         String rawQuery = uri.getRawQuery();
         if (rawQuery == null || rawQuery.isBlank()) {
-            return query;
+            return "intersection";
         }
 
         for (String pair : rawQuery.split("&")) {
             String[] parts = pair.split("=", 2);
-            String key = decode(parts[0]);
+            String entryKey = decode(parts[0]);
             String value = parts.length > 1 ? decode(parts[1]) : "";
-            query.put(key, value);
+            if (entryKey.equals(key)) {
+                return value;
+            }
         }
-        return query;
+        return "intersection";
     }
 
     private static String decode(String value) {
@@ -172,9 +164,12 @@ final class RectangleRestServer {
         sendJsonError(exchange, 405, "Only " + allowedMethod + " is allowed for this endpoint");
     }
 
+    private static void sendJson(HttpExchange exchange, int status, Object body) throws IOException {
+        sendResponse(exchange, status, "application/json; charset=utf-8", JSON_WRITER.writeValueAsString(body));
+    }
+
     private static void sendJsonError(HttpExchange exchange, int status, String message) throws IOException {
-        String body = OBJECT_MAPPER.writeValueAsString(new ErrorResponse(message));
-        sendResponse(exchange, status, "application/json; charset=utf-8", body);
+        sendJson(exchange, status, new ErrorResponse(message));
     }
 
     private static void sendResponse(HttpExchange exchange, int status, String contentType, String body) throws IOException {
@@ -192,29 +187,6 @@ final class RectangleRestServer {
     }
 
     private record RectanglePayload(Double minX, Double minY, Double maxX, Double maxY) {
-    }
-
-    private record AnalyzeResponse(boolean firstContainsSecond,
-                                   boolean secondContainsFirst,
-                                   String adjacencyType,
-                                   List<PointResponse> intersectionPoints,
-                                   String relationshipType) {
-
-        static AnalyzeResponse from(RectangleAnalysis analysis) {
-            List<PointResponse> points = analysis.intersectionPoints().stream()
-                    .map(point -> new PointResponse(point.x(), point.y()))
-                    .toList();
-            return new AnalyzeResponse(
-                    analysis.firstContainsSecond(),
-                    analysis.secondContainsFirst(),
-                    analysis.adjacencyType().name(),
-                    points,
-                    analysis.relationshipType().name()
-            );
-        }
-    }
-
-    private record PointResponse(double x, double y) {
     }
 
     private record ErrorResponse(String error) {
