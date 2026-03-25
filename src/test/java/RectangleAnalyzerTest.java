@@ -73,6 +73,22 @@ class RectangleAnalyzerTest {
     }
 
     @Test
+    void returnsFourIntersectionPointsForPlusSignIntersection() {
+        Rectangle horizontal = new Rectangle(0.0, 4.0, 10.0, 6.0);
+        Rectangle vertical = new Rectangle(4.0, 0.0, 6.0, 10.0);
+
+        assertEquals(
+                Set.of(
+                        new Point(4.0, 4.0),
+                        new Point(6.0, 4.0),
+                        new Point(4.0, 6.0),
+                        new Point(6.0, 6.0)
+                ),
+                RectangleAnalyzer.intersectionPoints(horizontal, vertical)
+        );
+    }
+
+    @Test
     void classifiesRepresentativeAdjacencyScenarios() {
         assertAll(
                 () -> assertEquals(
