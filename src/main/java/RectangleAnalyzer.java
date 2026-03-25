@@ -17,6 +17,8 @@ public final class RectangleAnalyzer {
     /**
      * Returns {@code true} when {@code inner} lies strictly inside {@code outer}.
      * Boundary contact does not count as containment.
+     * Extension point: switch to inclusive comparisons here if business rules
+     * later decide that boundary touch should still count as containment.
      */
     public static boolean contains(Rectangle outer, Rectangle inner) {
         Objects.requireNonNull(outer, "outer must not be null");
@@ -31,6 +33,8 @@ public final class RectangleAnalyzer {
     /**
      * Returns the discrete points where the rectangle boundaries cross.
      * Shared edges and corner touches are intentionally excluded.
+     * Extension point: revise this method if shared boundary segments should
+     * also count as intersections under a different business definition.
      */
     public static Set<Point> intersectionPoints(Rectangle first, Rectangle second) {
         Objects.requireNonNull(first, "first must not be null");
@@ -84,6 +88,8 @@ public final class RectangleAnalyzer {
 
     /**
      * Computes the full rectangle analysis in one pass for downstream consumers.
+     * Extension point: populate any future derived outputs here, such as
+     * overlap area, before returning the analysis record.
      */
     public static RectangleAnalysis analyze(Rectangle first, Rectangle second) {
         Objects.requireNonNull(first, "first must not be null");
@@ -143,6 +149,7 @@ public final class RectangleAnalyzer {
                                                          boolean hasIntersections,
                                                          boolean areaOverlap,
                                                          boolean cornerTouchOnly) {
+        // Extension point: reorder these checks if business precedence changes.
         if (firstContainsSecond) {
             return RelationshipType.FIRST_CONTAINS_SECOND;
         }

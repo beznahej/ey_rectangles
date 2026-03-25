@@ -7,6 +7,9 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+/**
+ * Focused tests for the core rectangle relationship rules.
+ */
 class RectangleAnalyzerTest {
 
     @Test

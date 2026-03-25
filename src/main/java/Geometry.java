@@ -20,6 +20,8 @@ enum RelationshipType {
     DISJOINT
 }
 
+// Extension point: add more derived outputs here, such as overlap area, if the
+// analysis contract needs to return richer data.
 record RectangleAnalysis(boolean firstContainsSecond,
                          boolean secondContainsFirst,
                          AdjacencyType adjacencyType,
